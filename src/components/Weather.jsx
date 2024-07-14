@@ -99,7 +99,7 @@ const Weather = () => {
 
     return (
         <>
-            <div className="min-h-screen grid grid-cols-5 md:bg-cover md:bg-center md:bg-[url('src/Assets/bg.jpg')] ">
+            <div className="min-h-screen grid grid-cols-5 md:bg-cover md:bg-center md:bg-[url('src/Assets/back.png')] ">
                 <div className="col-span-5">
                     <div className="max-w-md mx-auto min-h-screen md:min-h-0 md:my-14 md:py-20 pt-10  text-white md:px-10 px-8 bg-cyan-900 md:bg-cyan-900 md:bg-opacity-70 rounded-none md:rounded-3xl md:shadow-2xl border-none md:border-transparent">
                         <form>
