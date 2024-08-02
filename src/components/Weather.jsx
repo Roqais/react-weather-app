@@ -87,7 +87,7 @@ const Weather = () => {
 
     useEffect(() => {
         search("London")
-    })
+    }, [])
 
     const handleClick = (e) => {
         e.preventDefault()
@@ -101,7 +101,7 @@ const Weather = () => {
         <>
             <div className="min-h-screen grid grid-cols-5 md:bg-cover md:bg-center md:bg-[url('src/Assets/back.png')] ">
                 <div className="col-span-5">
-                    <div className="max-w-md mx-auto min-h-screen md:min-h-0 md:my-14 md:py-20 pt-10  text-white md:px-10 px-8 bg-cyan-900 md:bg-cyan-900 md:bg-opacity-70 rounded-none md:rounded-3xl md:shadow-2xl border-none md:border-transparent">
+                    <div className="max-w-md mx-auto min-h-screen md:min-h-0 md:my-6 md:py-20 pt-10  text-white md:px-10 px-8 bg-cyan-900 md:bg-cyan-900 md:bg-opacity-70 rounded-none md:rounded-3xl md:shadow-2xl border-none md:border-transparent">
                         <form>
                             <label
                                 htmlFor="default-search"
@@ -148,7 +148,7 @@ const Weather = () => {
                         {weatherData && (
                             <>
                                 <img src={weatherData.icon} className="md:w-40 w-72 md:my-6 my-10 mx-auto" alt="Clear Weather" />
-                                <div className="flex flex-col justify-center items-center md:mt-0 mt-16"> 
+                                <div className="flex flex-col justify-center items-center md:mt-0 mt-16">
                                     <h1 className="text-8xl font-semibold">{weatherData.temp}°c</h1>
                                     <h1 className="text-5xl mt-4 font-light">{weatherData.location}</h1>
                                 </div>
