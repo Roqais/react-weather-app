@@ -8,7 +8,7 @@ import wind from "../Assets/wind.png";
 import smoke from "../Assets/smoke.png";
 import { useEffect, useState, useRef } from "react";
 
-import back from '../Assets/back.png'
+import bg from '../Assets/bg.jpg'
 
 
 
@@ -103,7 +103,7 @@ const Weather = () => {
         <>
             <div
                 className="min-h-screen grid grid-cols-5 md:bg-cover md:bg-center"
-                style={{ backgroundImage: `url(${back})` }}
+                style={{ backgroundImage: `url(${bg})` }}
             >
                 <div className="col-span-5">
                     <div className="max-w-md mx-auto min-h-screen md:min-h-0 md:my-6 md:py-20 pt-10  text-white md:px-10 px-8 bg-cyan-900 md:bg-cyan-900 md:bg-opacity-70 rounded-none md:rounded-3xl md:shadow-2xl border-none md:border-transparent">
@@ -159,14 +159,14 @@ const Weather = () => {
                                 </div>
                                 <div className="flex justify-between md:mt-14 mt-20">
                                     <div className="flex items-center space-x-4">
-                                        <img src={humidity} className="md:w-10 md:h-12 w-12 h-14" alt="Humidity" />
+                                        <img src={humidity} className="md:w-10 md:h-8 w-12 h-14" alt="Humidity" />
                                         <div>
                                             <h3 className="md:text-lg text-2xl font-bold">{weatherData.humidity} %</h3>
                                             <h3 className="md:text-sm text-md   md:mt-0 mt-1 font-normal">Humidity</h3>
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-4">
-                                        <img src={wind} className="md:w-10 md:h-12 w-12 h-14" alt="Wind Speed" />
+                                        <img src={wind} className="md:w-10 md:h-8 w-12 h-14" alt="Wind Speed" />
                                         <div>
                                             <h3 className="md:text-lg text-2xl font-extrabold">{weatherData.windSpeed} <span className="text-base">Km/h</span></h3>
                                             <h3 className="md:text-sm text-md  font-normal">Wind Speed</h3>
