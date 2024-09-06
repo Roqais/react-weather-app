@@ -9,6 +9,14 @@ import smoke from "../Assets/smoke.png";
 import { useEffect, useState, useRef } from "react";
 
 import bg from '../Assets/bg.jpg'
+import Nav from "./Nav";
+
+import temperature from '../Assets/sm/temperature.png'
+import windImage from '../Assets/sm/windImage.png'
+import humidityImage from '../Assets/sm/humidityImage.png'
+import rainImage from '../Assets/sm/rainImage.png'
+import sunriseImage from '../Assets/sm/sunriseImage.png'
+import sunsetImage from '../Assets/sm/sunsetImage.png'
 
 
 
@@ -45,50 +53,70 @@ const Weather = () => {
 
     }
 
-
-
-    const search = async (city) => {
-
+    const convertTo12HourFormat = (timestamp, timeZone) => {
+        // Convert timestamp to milliseconds and adjust for time zone offset
+        const date = new Date(timestamp * 1000 + timeZone * 1000);
+      
+        let hours = date.getUTCHours();
+        let minutes = date.getUTCMinutes();
+      
+        const period = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12; // Convert 0 to 12 for 12AM
+        minutes = minutes < 10 ? `0${minutes}` : minutes; // Pad minutes
+      
+        return `${hours}:${minutes} ${period}`;
+      };
+      
+      const TimeDisplay = (data, timeZone) => {
+        const dataIn12HourFormat = convertTo12HourFormat(data, timeZone);
+        return dataIn12HourFormat;
+      };
+      
+      const search = async (city) => {
         if (city === "") {
-            alert("Enter City Name")
-            return;
+          alert("Enter City Name");
+          return;
         }
-
-
+      
         try {
+          const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${import.meta.env.VITE_APP_ID}`;
+      
+          const response = await fetch(url);
+          const data = await response.json();
 
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${import.meta.env.VITE_APP_ID}`
-
-            const response = await fetch(url);
-            const data = await response.json();
-
-            console.log(data)
-
-
-            if (!response.ok) {
-                alert(data.message)
-                return;
-            }
-
-
-            const icon = allIcons[data.weather[0].icon || clear]
-
-            setWeatherData({
-                humidity: data.main.humidity,
-                windSpeed: data.wind.speed,
-                temp: Math.floor(data.main.temp),
-                location: data.name,
-                icon: icon,
-            })
-
+          if (!response.ok) {
+            alert(data.message);
+            return;
+          }
+      
+          // Extract time zone offset from data (assuming it's provided in seconds)
+          const timeZoneOffset = data.timezone || 0; // Handle potential missing data
+      
+          const sunrise = TimeDisplay(data.sys.sunrise, timeZoneOffset);
+          const sunset = TimeDisplay(data.sys.sunset, timeZoneOffset);
+      
+          const icon = allIcons[data.weather[0].icon || clear];
+      
+          setWeatherData({
+            humidity: data.main.humidity,
+            windSpeed: data.wind.speed,
+            temp: parseFloat(data.main.temp).toFixed(1),
+            feelsLike: parseFloat(data.main.feels_like).toFixed(1),
+            location: data.name,
+            icon: icon,
+            sunrise: sunrise,
+            sunset: sunset,
+            rain: data.rain ? data.rain['1h'] : 0,
+            desc: data.weather[0].description
+          });
         } catch (error) {
-            setWeatherData(false);
-            console.error("Error in fetching data")
+          setWeatherData(false);
+          console.error("Error in fetching data", error);
         }
-    }
-
+      };
+      
     useEffect(() => {
-        search("London")
+        search("Islamabad")
     }, [])
 
     const handleClick = (e) => {
@@ -100,175 +128,136 @@ const Weather = () => {
 
 
     return (
+
         <>
-            <div
-                className="min-h-screen grid grid-cols-5 md:bg-cover md:bg-center"
-                style={{ backgroundImage: `url(${bg})` }}
-            >
-                <div className="col-span-5">
-                    <div className="max-w-md mx-auto min-h-screen md:min-h-0 md:my-6 md:py-20 pt-10  text-white md:px-10 px-8 bg-cyan-900 md:bg-cyan-900 md:bg-opacity-70 rounded-none md:rounded-3xl md:shadow-2xl border-none md:border-transparent">
-                        <form>
-                            <label
-                                htmlFor="default-search"
-                                className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
-                            >
-                                Search
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                    <svg
-                                        className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                                        aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path
-                                            stroke="currentColor"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-                                        />
-                                    </svg>
-                                </div>
+            <div className="min-h-screen">
+
+                <Nav />
+                <div className="md:max-w-5xl md:mx-auto">
+
+                    <div className="md:grid md:grid-cols-5 gap-10 md:mt-10 ">
+
+                        <section className="col-span-2 md:py-0 py-20  border border-gray-300 flex flex-col  bg-gray-50 shadow-lg">
+                            <div className="flex justify-center mt-8">
+                                <h2 className="uppercase font-semibold text-3xl">{weatherData.desc}</h2>
+                            </div>
+
+                            <div className="flex justify-center">
+                                <img src={weatherData.icon} className="h-56" alt="" />
+                            </div>
+
+                            <div className="flex flex-col items-center gap-3">
+                                <h1 className="text-5xl font-bold">{weatherData.temp}°C</h1>
+
+                                <h3 className="text-2xl font-light text-gray-500">{weatherData.location}</h3>
+                            </div>
+                        </section>
+
+                        <section className="col-span-3 border p-4">
+                            <form className="flex items-center justify-between md:gap-0 gap-4 md:my-0 my-4 ">
+
                                 <input
+                                    type="text"
+                                    className="shadow appearance-none border rounded w-4/5  py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    placeholder="City Name"
                                     ref={inputRef}
-                                    type="search"
-                                    id="default-search"
-                                    className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="Search City, Islamabad..."
-                                    required
                                 />
-                                <button
-                                    type="submit"
-                                    onClick={handleClick}
-                                    className="text-white absolute right-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                                >
+
+                                <button type="button"
+                                    className="border border-gray-500 py-1.5 px-3 mr-2
+                                 hover:bg-black hover:text-white rounded-lg"
+                                    onClick={handleClick}>
                                     Search
                                 </button>
+                            </form>
+
+                            <div className="grid grid-cols-2 gap-4 p-2 mt-3 items-center justify-center rounded bg-gray-100" >
+
+                                <div className="col-span-1 flex justify-between border h-24 rounded bg-white p-2">
+                                    <div className="flex flex-col gap-2 justify-center">
+                                        <h2 className="text-sm text-gray-400">Feels Like</h2>
+
+                                        <h1 className="text-2xl font-medium">{weatherData.feelsLike}°C</h1>
+                                    </div>
+                                    <div className="flex items-center justify-center">
+                                        <img src={temperature} className="h-12" alt="clear" />
+                                    </div>
+                                </div>
+
+                                <div className="col-span-1 flex justify-between border h-24 rounded bg-white p-2">
+                                    <div className="flex flex-col gap-2 justify-center">
+                                        <h2 className="text-sm text-gray-400">Wind</h2>
+
+                                        <h1 className="text-2xl font-medium">{weatherData.windSpeed} <span className="text-sm font-light text-gray-500">m/s</span></h1>
+                                    </div>
+                                    <div className="flex items-center justify-center">
+                                        <img src={windImage} className="h-8 w-14" alt="clear" />
+                                    </div>
+                                </div>
+
+                                <div className="col-span-1 flex justify-between border h-24 rounded bg-white p-2">
+                                    <div className="flex flex-col gap-2 justify-center">
+                                        <h2 className="text-sm text-gray-400">Humidity</h2>
+
+                                        <h1 className="text-2xl font-medium">{weatherData.humidity} <span className="text-sm font-light text-gray-500">%</span></h1>
+                                    </div>
+                                    <div className="flex items-center justify-center">
+                                        <img src={humidityImage} className="h-8" alt="clear" />
+                                    </div>
+                                </div>
+
+                                <div className="col-span-1 flex justify-between border h-24 rounded bg-white p-2">
+                                    <div className="flex flex-col gap-2 justify-center">
+                                        <h2 className="text-sm text-gray-400">Rain</h2>
+
+                                        <h1 className="text-2xl font-medium">{weatherData.rain} <span className="text-sm font-light text-gray-500">mm</span></h1>
+                                    </div>
+                                    <div className="flex items-center justify-center">
+                                        <img src={rainImage} className="h-12" alt="clear" />
+                                    </div>
+                                </div>
+
+                                <div className="col-span-1 flex justify-between border h-24 rounded bg-white p-2">
+                                    <div className="flex flex-col gap-2 justify-center">
+                                        <h2 className="text-sm text-gray-400">Sunrise</h2>
+
+                                        <h1 className="text-2xl font-medium">{weatherData.sunrise} <span className="text-sm font-light text-gray-500">AM</span></h1>
+                                    </div>
+                                    <div className="flex items-center justify-center">
+                                        <img src={sunriseImage} className="h-20 w-12" alt="clear" />
+                                    </div>
+                                </div>
+
+                                <div className="col-span-1 flex justify-between border h-24 rounded bg-white p-2">
+                                    <div className="flex flex-col gap-2 justify-center">
+                                        <h2 className="text-sm text-gray-400">Sunset</h2>
+
+                                        <h1 className="text-2xl font-medium">{weatherData.sunset} <span className="text-sm font-light text-gray-500">PM</span></h1>
+                                    </div>
+                                    <div className="flex items-center justify-center">
+                                        <img src={sunsetImage} className="h-10" alt="clear" />
+                                    </div>
+                                </div>
+
+
+
                             </div>
-                        </form>
-
-                        {weatherData && (
-                            <>
-                                <img src={weatherData.icon} className="md:w-40 w-72 md:my-6 my-10 mx-auto" alt="Clear Weather" />
-                                <div className="flex flex-col justify-center items-center md:mt-0 mt-16">
-                                    <h1 className="text-8xl font-semibold">{weatherData.temp}°c</h1>
-                                    <h1 className="text-5xl mt-4 font-light">{weatherData.location}</h1>
-                                </div>
-                                <div className="flex justify-between md:mt-14 mt-20">
-                                    <div className="flex items-center space-x-4">
-                                        <img src={humidity} className="md:w-10 md:h-8 w-12 h-14" alt="Humidity" />
-                                        <div>
-                                            <h3 className="md:text-lg text-2xl font-bold">{weatherData.humidity} %</h3>
-                                            <h3 className="md:text-sm text-md   md:mt-0 mt-1 font-normal">Humidity</h3>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-4">
-                                        <img src={wind} className="md:w-10 md:h-8 w-12 h-14" alt="Wind Speed" />
-                                        <div>
-                                            <h3 className="md:text-lg text-2xl font-extrabold">{weatherData.windSpeed} <span className="text-base">Km/h</span></h3>
-                                            <h3 className="md:text-sm text-md  font-normal">Wind Speed</h3>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </>
-                        )}
+                        </section>
 
 
                     </div>
 
-                </div>
-            </div>
 
+                </div>
+
+
+
+            </div>
         </>
 
 
-        // <>
-        //     <div className="min-h-screen" style={{
-        //         backgroundImage: image ? `url(${image})` : 'none',
-        //         backgroundSize: 'cover', // or 'contain' based on your preference
-        //         backgroundPosition: 'center',
-        //         backgroundRepeat: 'no-repeat',
-        //     }}
-        //     >
-
-        //         <div className="max-w-md mx-auto  bg-gray-700  p-10 rounded-lg text-white">
-        //             <div className="flex flex-col justify-center">
-        //                 <form>
-        //                     <label
-        //                         htmlFor="default-search"
-        //                         className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
-        //                     >
-        //                         Search
-        //                     </label>
-        //                     <div className="relative">
-        //                         <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-        //                             <svg
-        //                                 className="w-4 h-4 text-gray-500 dark:text-gray-400"
-        //                                 aria-hidden="true"
-        //                                 xmlns="http://www.w3.org/2000/svg"
-        //                                 fill="none"
-        //                                 viewBox="0 0 20 20"
-        //                             >
-        //                                 <path
-        //                                     stroke="currentColor"
-        //                                     strokeLinecap="round"
-        //                                     strokeLinejoin="round"
-        //                                     strokeWidth="2"
-        //                                     d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-        //                                 />
-        //                             </svg>
-        //                         </div>
-        //                         <input
-        //                             ref={inputRef}
-        //                             type="search"
-        //                             id="default-search"
-        //                             className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-        //                             placeholder="Search City, Islamabad..."
-        //                             required
-        //                         />
-        //                         <button
-        //                             type="submit"
-        //                             onClick={handleClick}
-        //                             className="text-white absolute right-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        //                         >
-        //                             Search
-        //                         </button>
-        //                     </div>
-        //                 </form>
-        //             </div>
-        //             {weatherData && (
-        //                 <>
-        //                     <img src={weatherData.icon} className="w-40 my-10 mx-auto" alt="Clear Weather" />
-        //                     <div className="flex flex-col justify-center items-center">
-        //                         <h1 className="text-8xl">{weatherData.temp}°c</h1>
-        //                         <h1 className="text-5xl mt-4">{weatherData.location}</h1>
-        //                     </div>
-        //                     <div className="flex justify-between mt-10">
-        //                         <div className="flex items-center space-x-4">
-        //                             <img src={humidity} className="w-10 h-12" alt="Humidity" />
-        //                             <div>
-        //                                 <h3 className="text-lg">{weatherData.humidity} %</h3>
-        //                                 <h3 className="text-sm">Humidity</h3>
-        //                             </div>
-        //                         </div>
-        //                         <div className="flex items-center space-x-4">
-        //                             <img src={wind} className="w-10 h-12" alt="Wind Speed" />
-        //                             <div>
-        //                                 <h3 className="text-lg">{weatherData.windSpeed} Km/h</h3>
-        //                                 <h3 className="text-sm">Wind Speed</h3>
-        //                             </div>
-        //                         </div>
-        //                     </div>
-        //                 </>
-        //             )}
-        //         </div>
-        //     </div>
-        // </>
     );
 };
 
 export default Weather;
+
